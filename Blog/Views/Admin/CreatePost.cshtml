@@ -1,0 +1,140 @@
+﻿@model Blog.Models.Posts
+
+@{
+    ViewData["Title"] = "撰寫新文章";
+}
+
+<style>
+    /* 設定編輯器高度 */
+    .ck-editor__editable_inline {
+        min-height: 400px;
+    }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-header bg-success text-white py-3">
+                <h4 class="mb-0 fw-bold"><i class="bi bi-pencil-fill me-2"></i>撰寫新文章</h4>
+            </div>
+            <div class="card-body p-4">
+                <form asp-action="CreatePost" method="post" enctype="multipart/form-data">
+                    <div asp-validation-summary="All" class="text-danger"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label fw-bold">文章標題</label>
+                        <input asp-for="Title" class="form-control" placeholder="請輸入標題..." />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">文章分類</label>
+                        <select asp-for="CategoryId" class="form-select">
+                            <option value="">-- 請選擇分類 --</option>
+                            @if (ViewBag.Categories != null)
+                            {
+                                foreach (var cat in ViewBag.Categories)
+                                {
+                                    <option value="@cat.Id">@cat.Name</option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="CategoryId" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Excerpt" class="form-label fw-bold">文章摘要</label>
+                        <textarea asp-for="Excerpt" class="form-control" rows="2" placeholder="簡短描述這篇文章..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Content" class="form-label fw-bold">文章內容</label>
+                        @* 這裡 ID 設為 editor，下面 JS 要對應 *@
+                        <textarea asp-for="Content" id="editor" class="form-control" rows="10" placeholder="分享你的正能量..."></textarea>
+                        <span asp-validation-for="Content" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-flex gap-2 pt-3">
+                        <button type="submit" class="btn btn-success px-5 rounded-pill">
+                            <i class="bi bi-cloud-arrow-up"></i> 發布文章
+                        </button>
+                        <a asp-action="Posts" class="btn btn-outline-secondary px-4 rounded-pill">取消</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+
+    <script>
+        // 定義自定義上傳適配器
+        class MyUploadAdapter {
+            constructor(loader) {
+                this.loader = loader;
+            }
+
+            upload() {
+                return this.loader.file
+                    .then(file => new Promise((resolve, reject) => {
+                        const data = new FormData();
+                        data.append('upload', file); // 'upload' 必須對應後端 Controller 接收的參數名
+
+                        fetch('/api/Upload', {
+                            method: 'POST',
+                            body: data
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                response.json().then(data => {
+                                    // 注意：後端必須回傳 { "url": "圖片路徑" } 這樣的 JSON
+                                    resolve({ default: data.url });
+                                });
+                            } else {
+                                reject(response.statusText);
+                            }
+                        })
+                        .catch(error => {
+                            reject('上傳失敗');
+                            console.error('Upload error:', error);
+                        });
+                    }));
+            }
+
+            abort() {
+                // 如果使用者取消上傳時的處理
+            }
+        }
+
+        // 插件函式：將適配器掛載到編輯器
+        function MyCustomUploadAdapterPlugin(editor) {
+            editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+                return new MyUploadAdapter(loader);
+            };
+        }
+
+        // 3. 建立編輯器 (只執行這一次)
+        ClassicEditor
+            .create(document.querySelector('#editor'), { // 這裡抓取 ID="editor"
+                extraPlugins: [MyCustomUploadAdapterPlugin], // 掛載上面寫好的插件
+                toolbar: [
+                    'heading', '|',
+                    'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
+                    'blockQuote', 'insertTable', 'undo', 'redo', '|',
+                    'uploadImage' // 確保工具列有圖片上傳按鈕
+                ]
+            })
+            .then(editor => {
+                console.log('CKEditor 5 初始化成功！', editor);
+            })
+            .catch(error => {
+                console.error('CKEditor 初始化失敗：', error);
+            });
+    </script>
+}

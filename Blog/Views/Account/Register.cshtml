@@ -1,0 +1,107 @@
+﻿@model Blog.ViewModel.RegisterViewModel
+
+@{
+    ViewData["Title"] = "註冊新帳號";
+    Layout = null; // 註冊頁通常不需要導覽列，保持乾淨
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>@ViewData["Title"] - 正能量部落格</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        body {
+            background: #f4f7f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .register-card {
+            width: 100%;
+            max-width: 450px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-card">
+        <h3 class="mb-4 text-center fw-bold text-primary">加入正能量部落格</h3>
+        <p class="text-center text-muted mb-4">建立您的帳戶以開始留言與互動</p>
+
+        <form asp-action="Register" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="UserName" class="form-label"></label>
+                <input asp-for="UserName" class="form-control" placeholder="請設定帳號" />
+                <span asp-validation-for="UserName" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" placeholder="example@email.com" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" placeholder="請設定密碼" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="ConfirmPassword" class="form-label"></label>
+                <input asp-for="ConfirmPassword" class="form-control" placeholder="請再次輸入密碼" />
+                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label>驗證碼</label>
+                <div class="input-group">
+                    <input asp-for="CaptchaCode" class="form-control" placeholder="請輸入圖片中的文字" />
+                    <img id="imgCaptcha" src="/Captcha/GetCaptcha" style="cursor:pointer;" title="點擊更換圖片" onclick="refreshCaptcha()" />
+                </div>
+                <span asp-validation-for="CaptchaCode" class="text-danger"></span>
+            </div>
+
+            <div class="d-grid gap-2 mb-3">
+                <button type="submit" class="btn btn-primary btn-lg">立即註冊</button>
+            </div>
+
+            <div class="text-center mt-3">
+                <span class="text-muted">已經有帳號了嗎？</span>
+                <a asp-controller="Account" asp-action="Login" class="text-decoration-none fw-bold">
+                    直接登入
+                </a>
+            </div>
+
+            <div class="text-center mt-2">
+                <a href="/" class="text-decoration-none text-muted small">
+                    ← 回到首頁
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+</body>
+</html>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function refreshCaptcha() {
+            var img = document.getElementById("imgCaptcha");
+            // 加時間戳記防止瀏覽器快取
+            img.src = "/Captcha/GetCaptcha?t=" + new Date().getTime();
+        }
+    </script>
+}

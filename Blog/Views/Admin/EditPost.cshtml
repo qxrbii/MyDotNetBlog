@@ -1,0 +1,173 @@
+﻿@model Blog.Models.Posts
+
+@{
+    ViewData["Title"] = "編輯文章";
+}
+<head>
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+</head>
+<div class="container mt-4">
+    <h3 class="mb-4">編輯文章</h3>
+
+    <form asp-action="EditPost" method="post">
+        @* 顯示錯誤訊息 *@
+        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+        @* 必須隱藏 ID，後端才知道要改哪一筆 *@
+        <input type="hidden" asp-for="Id" />
+
+        @* 隱藏原始資料，帶著比較保險 *@
+        <input type="hidden" asp-for="Author" />
+        <input type="hidden" asp-for="PublishDate" />
+        <input type="hidden" asp-for="ViewCount" />
+
+        <div class="mb-3">
+            <label asp-for="Title" class="form-label fw-bold">標題</label>
+            <input asp-for="Title" class="form-control" />
+            <span asp-validation-for="Title" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Author" class="form-label fw-bold">作者</label>
+            <input asp-for="Author" class="form-control" />
+            <span asp-validation-for="Author" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Slug" class="form-label fw-bold">網址代稱 (Slug)</label>
+            <input asp-for="Slug" class="form-control bg-light" 
+                   style="background-color: #e9ecef; cursor: not-allowed; color: #6c757d;" readonly />
+            <div class="form-text">網址代稱已固定，不可修改以維持連結穩定。</div>
+            <span asp-validation-for="Slug" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">分類</label>
+            <select asp-for="CategoryId" class="form-select"
+                    asp-items="@(new SelectList(ViewBag.Categories, "Id", "Name"))">
+                <option value="">-- 請選擇分類 --</option>
+            </select>
+            <span asp-validation-for="CategoryId" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Excerpt" class="form-label fw-bold">摘要</label>
+            <textarea asp-for="Excerpt" class="form-control" rows="3"></textarea>
+            <span asp-validation-for="Excerpt" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Content" class="form-label fw-bold">內容</label>
+            <textarea asp-for="Content" class="form-control" rows="10"></textarea>
+            <span asp-validation-for="Content" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">儲存修改</button>
+        <a asp-action="Posts" class="btn btn-secondary">取消</a>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+
+    <script>
+        // 1. 定義上傳配接器 (Adapter)
+        class MyUploadAdapter {
+            constructor(loader) {
+                // CKEditor 5 的 FileLoader 實例
+                this.loader = loader;
+            }
+
+            // 實作上傳邏輯
+            upload() {
+                return this.loader.file
+                    .then(file => new Promise((resolve, reject) => {
+                        _initRequest();
+                        _initListeners(resolve, reject, file);
+                        _sendRequest(file);
+                    }));
+            }
+
+            // 中止上傳
+            abort() {
+                if (this.xhr) {
+                    this.xhr.abort();
+                }
+            }
+        }
+
+        // 輔助函式：初始化 XHR 物件 (使用 XMLHttpRequest 而非 fetch，相容性更好)
+        let xhr;
+        function _initRequest() {
+            xhr = new XMLHttpRequest();
+            // POST 到你的後端 API
+            xhr.open('POST', '/api/Upload', true);
+            xhr.responseType = 'json';
+        }
+
+        // 輔助函式：監聽上傳進度與結果
+        function _initListeners(resolve, reject, file) {
+            const genericErrorText = `無法上傳檔案: ${file.name}.`;
+
+            xhr.addEventListener('error', () => reject(genericErrorText));
+            xhr.addEventListener('abort', () => reject());
+            xhr.addEventListener('load', () => {
+                const response = xhr.response;
+
+                // 如果後端回傳錯誤，或者沒有 url 屬性
+                if (!response || response.error) {
+                    return reject(response && response.error ? response.error.message : genericErrorText);
+                }
+
+                // 上傳成功！回傳圖片網址給 CKEditor
+                // 這裡對應後端回傳的 JSON: { "url": "/uploads/..." }
+                resolve({
+                    default: response.url
+                });
+            });
+        }
+
+        // 輔助函式：發送資料
+        function _sendRequest(file) {
+            const data = new FormData();
+            // 'upload' 必須對應後端 UploadController 的參數名稱 (IFormFile upload)
+            data.append('upload', file);
+            xhr.send(data);
+        }
+
+        // 2. 定義插件工廠函式
+        function MyCustomUploadAdapterPlugin(editor) {
+            editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+                return new MyUploadAdapter(loader);
+            };
+        }
+
+        // 3. 初始化編輯器 (只執行這一次！)
+        ClassicEditor
+            .create(document.querySelector('#Content'), {
+                // 載入我們的自定義上傳插件
+                extraPlugins: [MyCustomUploadAdapterPlugin],
+
+                // 移除不需要的媒體嵌入功能，避免干擾圖片上傳
+                mediaEmbed: {
+                    previewsInData: true
+                }
+            })
+            .then(editor => {
+                console.log('CKEditor 編輯器初始化成功！');
+            })
+            .catch(error => {
+                console.error('編輯器初始化失敗:', error);
+            });
+    </script>
+
+    <style>
+        .ck-editor__editable_inline {
+            min-height: 300px;
+        }
+    </style>
+}

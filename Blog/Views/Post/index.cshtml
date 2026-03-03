@@ -1,0 +1,112 @@
+﻿@using Blog.Dtos
+@model IEnumerable<Blog.Dtos.PostListDto>
+@using System.Text.RegularExpressions
+
+@{
+    ViewData["Title"] = "所有文章";
+    Layout = "_Layout";
+}
+@functions {
+    // 这是一个移除 HTML 標籤並截取文字的函式
+    public string GetPlainText(string htmlContent, int length = 100)
+    {
+        if (string.IsNullOrEmpty(htmlContent)) return "";
+
+        // 1. 使用 Regex 移除所有 <...> 標籤
+        var plainText = Regex.Replace(htmlContent, "<.*?>", string.Empty);
+
+        // 2. 解碼 HTML 實體 (例如把 &nbsp; 變回空格)
+        plainText = System.Net.WebUtility.HtmlDecode(plainText);
+
+        // 3. 截斷文字 (如果超過長度)
+        if (plainText.Length > length)
+        {
+            return plainText.Substring(0, length) + "...";
+        }
+        return plainText;
+    }
+}
+
+<div class="container mt-4">
+    <div class="text-center mb-5">
+        <h1 class="fw-bold text-primary display-5">📚 所有文章</h1>
+        <p class="text-muted lead">這裡匯集了所有的正能量與技術分享</p>
+        <hr class="w-25 mx-auto text-primary" style="height: 3px; opacity: 1;">
+    </div>
+
+    <div class="row">
+        @if (!Model.Any())
+        {
+            <div class="col-12 text-center py-5">
+                <div class="text-muted mb-3">
+                    <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                </div>
+                <h3>目前還沒有文章</h3>
+                <p>站長正在努力撰寫中，敬請期待！</p>
+            </div>
+        }
+        else
+        {
+            @foreach (var item in Model)
+            {
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm border-0 hover-card">
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <span class="badge rounded-pill bg-info text-dark bg-opacity-25 border border-info">
+                                    @item.CategoryName
+                                </span>
+                            </div>
+
+                            <h4 class="card-title fw-bold">
+                                <a asp-controller="Post"
+                                   asp-action="Details"
+                                   asp-route-slug="@item.Slug"
+                                   class="text-decoration-none text-dark stretched-link">
+                                    @item.Title
+                                </a>
+                            </h4>
+
+                            <div class="text-muted small mb-3">
+                                <i class="bi bi-calendar3"></i> @item.PublishDate.ToString("yyyy年MM月dd日")
+                            </div>
+
+                            <div class="small text-muted mb-2">
+                                <span><i class="bi bi-person"></i> @item.DisplayAuther</span> ·
+                                <span><i class="bi bi-eye"></i> @item.ViewCount 次瀏覽</span>
+                            </div>
+
+                            <p class="card-text text-secondary">
+                                @GetPlainText(item.Excerpt, 80)
+                            </p>
+                        </div>
+
+                        <div class="card-footer bg-transparent border-0 pb-3">
+                            <a asp-controller="Post"
+                               asp-action="Details"
+                               asp-route-slug="@item.Slug"
+                               class="btn btn-primary position-relative" style="z-index: 2;">
+                                繼續閱讀 &rarr;
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<style>
+    .hover-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .hover-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        }
+
+    .card {
+        cursor: pointer;
+    }
+</style>

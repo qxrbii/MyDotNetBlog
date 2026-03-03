@@ -1,0 +1,22 @@
+﻿@{
+    ViewData["Title"] = "後台儀表板";
+    Layout = "_AdminLayout";
+}
+
+<div class="container-fluid">
+    <div class="p-5 mb-4 bg-light rounded-3 shadow-sm">
+        <div class="container-fluid py-5">
+            <a asp-controller="Admin" asp-action="ManageUsers" class="btn btn-info">管理使用者權限</a>
+            <h1 class="display-5 fw-bold">歡迎回來, @User.Identity.Name!</h1>
+            <p class="col-md-8 fs-4">這是你的管理後台。你可以在這裡管理文章、修改個人設定。</p>
+            @if (User.IsInRole("1"))
+            {
+                <span class="badge bg-danger">管理員權限已啟動</span>
+            }
+            else
+            {
+                <span class="badge bg-primary">一般使用者模式</span>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,78 @@
+﻿@model IEnumerable<Blog.Dtos.CategoryDto>
+
+@{
+    //取得日期和時間
+    var now = DateTime.Now;
+    var firstDayOfMonth = new DateTime(now.Year, now.Month, 1);
+    var daysInMonth = DateTime.DaysInMonth(now.Year, now.Month);
+    var startDayOfWeek = (int)firstDayOfMonth.DayOfWeek; // 0=Sunday, 1=Monday, ..., 6=Saturday
+    var dayCounter = 1;
+}
+
+<div class="sticky-top" style="top: 90px;">
+    <div class="card mb-4 border-0 shadow-sm bg-dark text-white text-center p-3">
+        <h2 id="clock" class="mb-0 fw-bold">
+            @now.ToString("HH:mm:ss")
+        </h2>
+    </div>
+
+    <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-header bg-white border-0 text-center fw-bold">@now.ToString("yyyy / MM")</div>
+        <div class="card-body p-2">
+            <table class="table table-sm text-center table-borderless m-0">
+                <thead>
+                    <tr class="small text-muted">
+                        <th>日</th>
+                        <th>一</th>
+                        <th>二</th>
+                        <th>三</th>
+                        <th>四</th>
+                        <th>五</th>
+                        <th>六</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int row = 0; row < 6; row++)
+                    {
+                        <tr>
+                            @for (int col = 0; col < 7; col++)
+                            {
+                                //是否為當月第一天或是之前
+                                if (row == 0 && col < startDayOfWeek)
+                                {
+                                    <td></td> <!-- 空白格 -->
+                                }
+                                else if (dayCounter > daysInMonth)
+                                {
+                                    <td></td> <!-- 超出當月天數，空白格 -->
+                                }
+                                else
+                                {
+                                    <td class="@(dayCounter == now.Day ? "bg-primary text-white rounded" : "")">@dayCounter</td>
+                                    dayCounter++;
+                                }
+                                if (dayCounter > daysInMonth) { break; }
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="list-group shadow-sm border-0">
+        <div class="list-group-item bg-light fw-bold border-0">主題導覽</div>
+        @foreach (var item in Model)
+        {
+            // 使用 Slug 產生連結
+            <a href="/Home/Index?category=@item.Name" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                <span>@item.Name</span>
+                <span class="badge bg-primary rounded-pill">@item.PostCount</span>
+            </a>
+        }
+    </div>
+</div>
+
+<script>
+    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString(); }, 1000);
+</script>

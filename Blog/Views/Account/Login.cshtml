@@ -1,0 +1,101 @@
+﻿@model Blog.Dtos.LoginDto
+
+@{
+    Layout = null;
+    ViewData["Title"] = "登入";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>@ViewData["Title"] - 正能量部落格後台</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <style>
+        body {
+            background: #f4f7f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            padding: 2rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h3 class="mb-4 text-center fw-bold">管理員登入</h3>
+
+        <form asp-action="Login" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="Username" class="form-label">帳號</label>
+                <input asp-for="Username" class="form-control" placeholder="請輸入帳號" />
+                <span asp-validation-for="Username" class="text-danger"></span>
+            </div>
+
+            <div class="mb-4">
+                <label asp-for="Password" class="form-label">密碼</label>
+                <div class="input-group">
+                    <input asp-for="Password" class="form-control" placeholder="請輸入密碼" type="password" id="passwordInput" />
+
+                    <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()">
+                        <i id="passwordIcon" class="bi bi-eye"></i>
+                    </button>
+                </div>
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="d-grid gap-2 mb-3">
+                <button type="submit" class="btn btn-primary btn-lg">登入</button>
+            </div>
+
+            <div class="text-center mt-3">
+                <span class="text-muted">還沒有帳號嗎？</span>
+                <a asp-controller="Account" asp-action="Register" class="text-decoration-none fw-bold">
+                    註冊新使用者
+                </a>
+                <br> <a asp-controller="Account" asp-action="Forgot" class="text-decoration-none text-muted small">
+                    忘記帳號密碼？
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+    <script>
+        function togglePassword() {
+            var input = document.getElementById("passwordInput");
+            var icon = document.getElementById("passwordIcon");
+
+            if (input.type === "password") {
+                // 變成明碼
+                input.type = "text";
+                // 切換圖示為「斜線眼睛」
+                icon.classList.remove("bi-eye");
+                icon.classList.add("bi-eye-slash");
+            } else {
+                // 變回密碼
+                input.type = "password";
+                // 切換圖示為「眼睛」
+                icon.classList.remove("bi-eye-slash");
+                icon.classList.add("bi-eye");
+            }
+        }
+    </script>
+</body>
+</html>

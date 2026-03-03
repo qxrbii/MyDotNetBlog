@@ -1,0 +1,40 @@
+﻿@using Blog.Dtos
+@model IEnumerable<PostListDto>
+
+@{
+    Layout = "_Layout";
+}
+
+@if (!User.Identity.IsAuthenticated)
+{
+    <div class="alert alert-info alert-dismissible fade show rounded-pill shadow-sm mb-4" role="alert">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        <strong>想分享你的正能量嗎？</strong> 歡迎 <a href="/Account/Login" class="alert-link">登入</a> 或 <a href="/Account/Register" class="alert-link">註冊</a> 後對文章進行留言！
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="row">
+    <div class="col-lg-8">
+        @await Component.InvokeAsync("PostContent")
+    </div>
+
+    <div class="col-lg-4 d-none d-lg-block">
+        @await Component.InvokeAsync("SideBar")
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function setView(mode) {
+            const container = document.getElementById('post-container');
+            if(mode === 'list') {
+                container.classList.remove('row-cols-md-2');
+                container.classList.add('row-cols-1');
+            } else {
+                container.classList.remove('row-cols-1');
+                container.classList.add('row-cols-md-2');
+            }
+        }
+    </script>
+}

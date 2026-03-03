@@ -1,0 +1,24 @@
+﻿@{
+    ViewData["Title"] = "信件已寄出";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="card shadow-sm border-0 p-4">
+                <div class="card-body">
+                    <i class="bi bi-envelope-check text-success" style="font-size: 3rem;"></i>
+                    <h2 class="mt-3 fw-bold">請檢查您的電子郵件</h2>
+                    <p class="text-muted mt-3">
+                        如果該帳號存在於我們的系統中，我們已經發送了一封包含「帳號資訊」與「重設密碼連結」的郵件。
+                    </p>
+                    <hr />
+                    <p class="small text-secondary">
+                        沒收到信嗎？請檢查垃圾郵件資料夾，或 <a asp-action="Forgot" class="text-decoration-none">再試一次</a>。
+                    </p>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-outline-primary mt-3">返回首頁</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
